@@ -1,4 +1,4 @@
-function [ Np, Xp, Mp, Vp, Fp, Bp, VOL0p, P_mew, P_lam ] = ...
+function [ Np, Xp, Mp, Vp, Fp, Bp, VOL0p, Wpg, Wpg_grad, P_mew, P_lam ] = ...
     InitializeMaterialBody(shape, pMass, pSpacing, youngMod, poisson, V0, gridDimX, gridDimY, gridX0, gridY0, h)
 % Each material body needs:
     % Np = # of material points
@@ -37,6 +37,8 @@ VOL0p = InitialParticleVolumes(Wpg, Mp, Np, gridDimX, gridDimY, h);
 
 P_mew = youngMod / (2 * (1 + poisson));
 P_lam = youngMod * poisson / ((1 + poisson)*(1 - 2*poisson));
+
+Wpg_grad = zeros(Np, gridDimX, gridDimY, 2);
 
 end
 

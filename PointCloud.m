@@ -13,13 +13,16 @@ donut = @(p, c, r1, r2) max(-circle(p, c, r1), circle(p, c, r2));
 union = @(sd1, sd2) min(sd1, sd2);
 
 %% Definied demo shapes
-demoCircle = @(s) circle(s.p, s.c, s.r);
+demoCircle = @(s, p) circle(p, s.c, s.r);
+demoDonut = @(s, p) donut(p, s.c, s.r1, s.r2);
 twoCirclesUnion = @(s, p) union(circle(p,s.c1,s.r),circle(p,s.c2,s.r));
 
 sdf = demoCircle;
 
 if shape.type=="twoCirclesUnion"
     sdf = twoCirclesUnion;
+elseif shape.type=="demoDonut"
+    sdf = demoDonut;
 end
 
 
