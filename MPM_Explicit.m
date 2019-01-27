@@ -1,11 +1,11 @@
 clear all;
 clc;
 
-timeSteps = 100;
+timeSteps = 600;
 dt = 1/60;
 
 % number of material points
-Np = 300;
+% Np = 300;
 
 %% Grid initialization
 
@@ -13,6 +13,7 @@ Np = 300;
 gridDimX = 20;
 gridDimY = 20;
 h = 1; % grid spacing
+d = h/4;
 gridX0 = 1;
 gridY0 = 1;
 % this means nodes are located at (1,1), (1,2), ... , (20, 20)
@@ -44,7 +45,9 @@ Vg = zeros(gridDimX, gridDimY, 2);
 %X0p = zeros(Np, 2);%, 'gpuArray');
 % BoxBounds = [5 8];
 % X0p = BoxBounds(1) + rand(Np, 2) * (BoxBounds(2) - BoxBounds(1));
-X0p = PointCloud(Np, gridDimX, gridDimY, gridX0, gridY0);
+tic;
+[X0p, Np] = PointCloud(d, gridDimX, gridDimY, gridX0, gridY0);
+toc;
 
 % current config of material points
 Xp = X0p;
@@ -72,7 +75,7 @@ P_mew = youngMod / (2 * (1 + poisson));
 P_lam = youngMod * poisson / ((1 + poisson)*(1 - 2*poisson));
 
 STICKY = 0.9;
-
+NONSTICKY = 1 - STICKY;
 %% MPM final initializations
 
 % intial weights
@@ -91,11 +94,17 @@ Dp_i = inv(1/3 * h^2 * eye(2));
 % ************************************************************** %
 
 
-pointSize = 3;
+pointSize = 4/d;
 fig = figure;%('visible','off');
-plot([3 18 18 3 3], [3 3 18 18 3], 'k');
+
+plot([3 18 18 3 3 18], [3 3 18 18 3 3], 'w', 'LineWidth',7);
+set(gca, 'Color', 'k');
+ax = gca;
+ax.GridColor = [1.0, 1.0, 1.0];
 hold on;
-MPs = scatter(X0p(:, 1), X0p(:,2), pointSize, 'red');
+props = {'LineStyle','none','Marker','o','MarkerEdge','b','MarkerSize',6};
+MPs = scatter(X0p(:, 1), X0p(:,2), pointSize, 'filled', 'red');
+%MPs = line([X0p(:,1), X0p(:,1)], [X0p(:,2), X0p(:,2)], props{:});
 axis([1 20 1 20]);
 xticks(1:20);
 yticks(1:20);
@@ -139,6 +148,7 @@ end
 toc;
 
 %% 2. Compute grid velocities
+
 
 tic;
 % non-vectorized, need to find vectorized solution
@@ -228,12 +238,12 @@ for k=1:numDegrees
     % left right borders
     if (newNodePos(1) < BORDER_MIN) || (newNodePos(1) > BORDER_MAX)
         Vg(i, j, 1) = 0;
-        Vg(i, j, 2) = Vg(i, j, 2) * (1 - STICKY);
+        Vg(i, j, 2) = Vg(i, j, 2) * NONSTICKY;
     end
     
     % top bottom borders
     if (newNodePos(2) < BORDER_MIN) || (newNodePos(2) > BORDER_MAX)
-        Vg(i, j, 1) = Vg(i, j, 1) * (1 - STICKY);
+        Vg(i, j, 1) = Vg(i, j, 1) * NONSTICKY;
         Vg(i, j, 2) = 0;
     end
 end
@@ -301,7 +311,8 @@ toc;
 tic;
 
 delete(MPs);
-MPs = scatter(Xp(:, 1), Xp(:,2), pointSize, 'red');
+MPs = scatter(Xp(:, 1), Xp(:,2), pointSize, 'filled', 'red');
+%MPs = line([Xp(:,1), Xp(:,1)], [Xp(:,2), Xp(:,2)], props{:});
 M(t+1) = getframe;
 toc;
 
